@@ -1,16 +1,21 @@
-export class FilmDto {
+export class FilmResponseDto {
   id: string;
-  title: string;
   rating: number;
   director: string;
-  tags: string[];
+  tags: string;
+  title: string;
   about: string;
   description: string;
   image: string;
   cover: string;
 }
 
-export class FilmScheduleItemDto {
+export class FilmsListResponseDto {
+  total: number;
+  items: FilmResponseDto[];
+}
+
+export class ScheduleResponseDto {
   id: string;
   daytime: string;
   hall: string;
@@ -20,7 +25,7 @@ export class FilmScheduleItemDto {
   taken: string[];
 }
 
-export class FilmScheduleDto {
+export class ScheduleListResponseDto {
   total: number;
-  items: FilmScheduleItemDto[];
+  items: ScheduleResponseDto[];
 }
