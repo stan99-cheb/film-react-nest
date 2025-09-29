@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, OneToMany } from 'typeorm';
+import { Schedule } from './schedule.entity';
 
 @Entity('films')
 export class Film {
@@ -9,6 +10,7 @@ export class Film {
   rating: number;
 
   @Column('varchar')
+
   director: string;
 
   @Column('text')
@@ -28,4 +30,7 @@ export class Film {
 
   @Column('varchar')
   description: string;
+
+  @OneToMany(() => Schedule, (schedule) => schedule.film)
+  schedules: Schedule[];
 }

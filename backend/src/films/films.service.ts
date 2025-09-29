@@ -42,7 +42,7 @@ export class FilmsService {
 
   async findScheduleByFilmId(filmId: string): Promise<ScheduleListResponseDto> {
     const schedules = await this.scheduleRepository.find({
-      where: { filmId },
+      where: { film: { id: filmId } },
     });
 
     const items: ScheduleResponseDto[] = schedules.map((schedule) => ({

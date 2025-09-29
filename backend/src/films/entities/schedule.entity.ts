@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
+import { Film } from './film.entity';
 
 @Entity('schedules')
 export class Schedule {
@@ -23,6 +30,7 @@ export class Schedule {
   @Column('text')
   taken: string;
 
-  @Column('uuid')
-  filmId: string;
+  @ManyToOne(() => Film, (film) => film.schedules)
+  @JoinColumn({ name: 'filmId' })
+  film: Film;
 }
