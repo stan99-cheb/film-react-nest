@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'node:path';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
@@ -21,11 +21,21 @@ import { OrderModule } from './order/order.module';
     }),
     FilmsModule,
     OrderModule,
-    TypeOrmModule.forRoot({
-      type: process.env.DATABASE_DRIVER as 'postgres',
-      url: process.env.DATABASE_URL,
-      entities: [Film, Schedule],
-      synchronize: true,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: configService.get<string>(
+          'DATABASE_DRIVER',
+          'postgres',
+        ) as 'postgres',
+        url: configService.get<string>(
+          'DATABASE_URL',
+          'postgres://user:password@localhost:5432/practicum',
+        ),
+        entities: [Film, Schedule],
+        synchronize: true,
+      }),
+      inject: [ConfigService],
     }),
   ],
   controllers: [],
