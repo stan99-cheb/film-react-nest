@@ -1,26 +1,22 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { Film } from './entities/film.entity';
-import { Schedule } from './entities/schedule.entity';
 import {
   FilmsListResponseDto,
   FilmResponseDto,
   ScheduleListResponseDto,
   ScheduleResponseDto,
 } from './dto/films.dto';
+import { FilmsRepository } from './repositories/films.repository';
+import { ScheduleRepository } from './repositories/schedule.repository';
 
 @Injectable()
 export class FilmsService {
   constructor(
-    @InjectRepository(Film)
-    private filmsRepository: Repository<Film>,
-    @InjectRepository(Schedule)
-    private scheduleRepository: Repository<Schedule>,
+    private filmsRepository: FilmsRepository,
+    private scheduleRepository: ScheduleRepository,
   ) {}
 
   async findAll(): Promise<FilmsListResponseDto> {
-    const films = await this.filmsRepository.find();
+    const films = await this.filmsRepository.findAll();
 
     const items: FilmResponseDto[] = films.map((film) => ({
       id: film.id,
@@ -41,9 +37,7 @@ export class FilmsService {
   }
 
   async findScheduleByFilmId(filmId: string): Promise<ScheduleListResponseDto> {
-    const schedules = await this.scheduleRepository.find({
-      where: { film: { id: filmId } },
-    });
+    const schedules = await this.scheduleRepository.findByFilmId(filmId);
 
     const items: ScheduleResponseDto[] = schedules.map((schedule) => ({
       id: schedule.id,

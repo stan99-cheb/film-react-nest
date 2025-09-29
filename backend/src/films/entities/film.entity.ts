@@ -10,7 +10,6 @@ export class Film {
   rating: number;
 
   @Column('varchar')
-
   director: string;
 
   @Column('text')
