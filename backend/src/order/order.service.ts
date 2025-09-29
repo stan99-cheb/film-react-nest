@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import {
@@ -27,11 +27,14 @@ export class OrderService {
       if (schedule) {
         const newTakenSeat = `${ticket.row}:${ticket.seat}`;
         const takenSeats = schedule.taken ? schedule.taken.split(',') : [];
-        if (!takenSeats.includes(newTakenSeat)) {
-          takenSeats.push(newTakenSeat);
-          schedule.taken = takenSeats.join(',');
-          await this.scheduleRepository.save(schedule);
+        if (takenSeats.includes(newTakenSeat)) {
+          throw new ConflictException(
+            `Место ряд:${ticket.row} место:${ticket.seat} уже занято`,
+          );
         }
+        takenSeats.push(newTakenSeat);
+        schedule.taken = takenSeats.join(',');
+        await this.scheduleRepository.save(schedule);
       }
 
       items.push({
