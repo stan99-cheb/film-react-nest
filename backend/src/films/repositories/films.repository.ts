@@ -13,4 +13,8 @@ export class FilmsRepository {
   async findAll(): Promise<Film[]> {
     return this.filmsRepository.find();
   }
+
+  async findOneById(id: string): Promise<Film | null> {
+    return this.filmsRepository.findOneBy({ id });
+  }
 }

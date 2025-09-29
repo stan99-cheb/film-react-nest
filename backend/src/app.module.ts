@@ -4,7 +4,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'node:path';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { configProvider } from './app.config.provider';
 import { FilmsModule } from './films/films.module';
 import { Film, Schedule } from './films/entities';
 import { OrderModule } from './order/order.module';
@@ -24,21 +23,17 @@ import { OrderModule } from './order/order.module';
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
-        type: configService.get<string>(
-          'DATABASE_DRIVER',
-          'postgres',
-        ) as 'postgres',
-        url: configService.get<string>(
-          'DATABASE_URL',
-          'postgres://user:password@localhost:5432/practicum',
-        ),
+        type: 'postgres',
+        host: configService.get<string>('DATABASE_HOST'),
+        port: configService.get<number>('DATABASE_PORT'),
+        username: configService.get<string>('DATABASE_USERNAME'),
+        password: configService.get<string>('DATABASE_PASSWORD'),
+        database: configService.get<string>('DATABASE_NAME'),
         entities: [Film, Schedule],
         synchronize: true,
       }),
       inject: [ConfigService],
     }),
   ],
-  controllers: [],
-  providers: [configProvider],
 })
 export class AppModule {}

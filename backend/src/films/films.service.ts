@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   FilmsListResponseDto,
   FilmResponseDto,
@@ -37,6 +37,10 @@ export class FilmsService {
   }
 
   async findScheduleByFilmId(filmId: string): Promise<ScheduleListResponseDto> {
+    const film = await this.filmsRepository.findOneById(filmId);
+    if (!film) {
+      throw new NotFoundException(`Фильм с id ${filmId} не найден`);
+    }
     const schedules = await this.scheduleRepository.findByFilmId(filmId);
 
     const items: ScheduleResponseDto[] = schedules.map((schedule) => ({
