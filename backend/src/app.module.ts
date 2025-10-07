@@ -1,33 +1,39 @@
-import { FilmsModule } from './films/films.module';
 import { Module } from '@nestjs/common';
 import { ServeStaticModule } from '@nestjs/serve-static';
-import { ConfigModule } from '@nestjs/config';
-import { MongooseModule } from '@nestjs/mongoose';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import * as path from 'node:path';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
-import { AppConfig } from './app.config.provider';
-import { ConfigAppModule } from './config-app.module';
+import { FilmsModule } from './films/films.module';
+import { Film, Schedule } from './films/entities';
 import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
-    ServeStaticModule.forRoot({
-      rootPath: path.join(__dirname, '..', 'public', 'content', 'afisha'),
-      serveRoot: '/content/afisha',
-    }),
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
     }),
-    MongooseModule.forRootAsync({
-      imports: [ConfigAppModule],
-      inject: ['CONFIG'],
-      useFactory: (config: AppConfig) => ({
-        uri: config.database.url,
-      }),
+    ServeStaticModule.forRoot({
+      rootPath: path.join(__dirname, '..', 'public'),
+      serveRoot: '/',
     }),
     FilmsModule,
     OrderModule,
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres',
+        host: configService.get<string>('DATABASE_HOST'),
+        port: configService.get<number>('DATABASE_PORT'),
+        username: configService.get<string>('DATABASE_USERNAME'),
+        password: configService.get<string>('DATABASE_PASSWORD'),
+        database: configService.get<string>('DATABASE_NAME'),
+        entities: [Film, Schedule],
+        synchronize: true,
+      }),
+      inject: [ConfigService],
+    }),
   ],
 })
 export class AppModule {}
