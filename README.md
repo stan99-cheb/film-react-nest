@@ -1,36 +1,54 @@
-# FILM!
+# film-react-nest
 
-## Установка
+Многоуровневое приложение для онлайн-афиши кинотеатра: фронтенд на React + Vite, бэкенд на NestJS, база данных PostgreSQL, инфраструктура через Docker Compose.
 
-### MongoDB
+## Состав репозитория
 
-Установите MongoDB скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker (см. ветку `feat/docker`.
+- `frontend/` — клиентская часть (React, Vite)
+- `backend/` — серверная часть (NestJS)
+- `nginx/` — конфигурация nginx для проксирования
+- `docker-compose.yml` — запуск всех сервисов
+- `backend/test/` — SQL-скрипты для инициализации БД
 
-Выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+## Быстрый старт
 
-### Бэкенд
+1. Установите Docker и Docker Compose v2.
+2. Запустите все сервисы:
+	 ```bash
+	 docker compose up -d --build
+	 ```
+3. Приложение будет доступно на https://film.stan99.nomorepartiessbs.ru/
 
-Перейдите в папку с исходным кодом бэкенда
+P.S. При первом запуске скорее всего не будет сертификата и nginx не поднимется, пока он не появится. Надо пошаманить с конфигурацией nginx и запуском certbot (сервис присутствует). Команда для запуска certbot такая: docker compose run --rm certbot certonly --webroot --webroot-path /var/www/certbot/ -d film.stan99.nomorepartiessbs.ru
 
-`cd backend`
+## Сервисы
 
-Установите зависимости (точно такие же, как в package-lock.json) помощью команд
+- **frontend** — React SPA, порты 80, 443 (через nginx)
+- **backend** — NestJS API, порт 3000 (внутри сети)
+- **database** — PostgreSQL 16, порт 5432
+- **nginx** — проксирование и статика
 
-`npm ci` или `yarn install --frozen-lockfile`
+## Инициализация БД
 
-Создайте `.env` файл из примера `.env.example`, в нём укажите:
+При первом запуске контейнера PostgreSQL автоматически выполняются скрипты:
+- `01_create_tables.sql`
+- `02_prac.films.sql`
+- `03_prac.schedules.sql`
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
+## Проверка работы
 
-MongoDB должна быть установлена и запущена.
+- Проверить доступность nginx:
+	```bash
+	curl -v https://film.stan99.nomorepartiessbs.ru/
+	```
 
-Запустите бэкенд:
+## Разработка
 
-`npm start:debug`
+- Фронтенд: `cd frontend && npm install && npm run dev`
+- Бэкенд: `cd backend && npm install && npm run start:dev`
 
-Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
+## Документация
 
-
-
-
+- [NestJS](https://docs.nestjs.com/)
+- [React](https://react.dev/)
+- [Docker Compose](https://docs.docker.com/compose/)
