@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # Backend сервис (NestJS)
   backend:
@@ -10,17 +8,19 @@ services:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
     environment:
-      - NODE_ENV=development
-      - DATABASE_HOST=dev.stan99.ru
+      - NODE_ENV=production
+      - DATABASE_HOST=host.docker.internal
       - DATABASE_PORT=5432
       - DATABASE_USERNAME=root
       - DATABASE_PASSWORD=example
       - DATABASE_NAME=practicum
-    command: sh -c "npm ci && npm run start:dev"
+    command: sh -c "npm ci --include=dev && npm run build && npm run start:prod"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     networks:
       - film_network
 
-  # Frontend сервис (React + Vite)
+  # Frontend сервис - сборка production бандла
   frontend:
     image: node:22
     container_name: frontend
@@ -28,10 +28,11 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
+      - frontend_dist:/app/dist
     environment:
-      - VITE_API_URL=http://localhost/api/afisha
-      - VITE_CDN_URL=http://localhost/content/afisha
-    command: sh -c "npm ci && npm run dev -- --host 0.0.0.0"
+      - VITE_API_URL=https://film.stan99.nomorepartiessbs.ru/api/afisha
+      - VITE_CDN_URL=https://film.stan99.nomorepartiessbs.ru/content/afisha
+    command: sh -c "npm ci && npm run build"
     depends_on:
       - backend
     networks:
@@ -41,16 +42,26 @@ services:
   nginx:
     image: nginx:alpine
     container_name: nginx
-    restart: unless-stopped
+    restart: always
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - frontend_dist:/usr/share/nginx/html
+      - certbot_www:/var/www/certbot/:ro
+      - certbot_conf:/etc/nginx/ssl/:ro
     depends_on:
       - frontend
       - backend
     networks:
       - film_network
+
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - certbot_www:/var/www/certbot/:rw
+      - certbot_conf:/etc/letsencrypt/:rw
 
 networks:
   film_network:
@@ -59,3 +70,6 @@ networks:
 volumes:
   backend_node_modules:
   frontend_node_modules:
+  frontend_dist:
+  certbot_www:
+  certbot_conf:
