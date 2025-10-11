@@ -3,6 +3,7 @@ services:
   backend:
     image: node:22
     container_name: backend
+    restart: always
     working_dir: /app
     volumes:
       - ./backend:/app
@@ -14,6 +15,7 @@ services:
       - DATABASE_USERNAME=root
       - DATABASE_PASSWORD=example
       - DATABASE_NAME=practicum
+      - LOGGER_FORMAT=production
     command: sh -c "npm ci --include=dev && npm run build && npm run start:prod"
     extra_hosts:
       - "host.docker.internal:host-gateway"
