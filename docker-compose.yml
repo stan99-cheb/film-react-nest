@@ -1,24 +1,41 @@
 services:
+  # Сервис базы данных PostgreSQL
+  database:
+    image: postgres:16
+    container_name: database
+    restart: always
+    environment:
+      POSTGRES_DB: practicum
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: example
+    volumes:
+        - postgres_data:/var/lib/postgresql/data
+        - ./backend/test/01_create_tables.sql:/docker-entrypoint-initdb.d/01_create_tables.sql:ro
+        - ./backend/test/02_prac.films.sql:/docker-entrypoint-initdb.d/02_prac.films.sql:ro
+        - ./backend/test/03_prac.schedules.sql:/docker-entrypoint-initdb.d/03_prac.schedules.sql:ro
+    networks:
+      - film_network
+
   # Backend сервис (NestJS)
   backend:
     image: node:22
     container_name: backend
     restart: always
     working_dir: /app
+    depends_on:
+      - database
     volumes:
       - ./backend:/app
       - backend_node_modules:/app/node_modules
     environment:
       - NODE_ENV=production
-      - DATABASE_HOST=host.docker.internal
+      - DATABASE_HOST=database
       - DATABASE_PORT=5432
       - DATABASE_USERNAME=root
       - DATABASE_PASSWORD=example
       - DATABASE_NAME=practicum
       - LOGGER_FORMAT=production
     command: sh -c "npm ci --include=dev && npm run build && npm run start:prod"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - film_network
 
@@ -75,3 +92,4 @@ volumes:
   frontend_dist:
   certbot_www:
   certbot_conf:
+  postgres_data:
