@@ -1,0 +1,55 @@
+name: Deploy to Remote Server
+
+on:
+  push:
+    branches:
+      - main
+      - review
+  pull_request:
+    branches:
+      - main
+      - review
+
+env:
+  DEPLOY_HOST: film.stan99.nomorepartiessbs.ru
+  CERTBOT_EMAIL: admin@stan99.nomorepartiessbs.ru
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Create target directory on remote server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            mkdir -p ~/film-react-nest
+
+      - name: Copy files to remote server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          source: .
+          target: ~/film-react-nest
+          overwrite: true
+
+      - name: Run deploy script on remote server
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ env.DEPLOY_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          passphrase: ${{ secrets.SSH_PASSPHRASE }}
+          script: |
+            cd ~/film-react-nest
+            docker compose down || true
+            docker compose up -d --build
